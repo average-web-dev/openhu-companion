@@ -17,9 +17,10 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 /**
- * A player without sound: the music plays on the head unit. Its state is OpenHU's `media.current`; play, pause,
- * next, previous and a chosen track become `music.command`s. Android Auto shows its own guess right after a tap, so
- * a moment after the last command the state is fetched again ([refresh]) and the head unit's state wins.
+ * A player without sound: the music plays on the head unit. Its state is the music plugin's `music.state` (the
+ * player whose library the app shows, also while another source has paused it), the cover comes from its
+ * `media.metadata`. Play, pause, next, previous and a chosen track become `music.command`s. Android Auto shows its
+ * own guess right after a tap, so a moment after the last command the state is fetched again ([refresh]).
  */
 @OptIn(UnstableApi::class)
 class HeadUnitPlayer(
@@ -28,27 +29,31 @@ class HeadUnitPlayer(
     private val scope: CoroutineScope,
 ) : SimpleBasePlayer(looper) {
     private val handler = Handler(looper)
-    private var track: Track? = null
+    private var track: MusicState.Track? = null
+    private var cover: Pair<String, ByteArray>? = null  // title -> cover of the plugin's media.metadata
     private val refreshRunnable = Runnable { refresh() }
 
-    /** What OpenHU reports; [receivedAt] for the position between two reports. */
-    data class Track(
-        val title: String, val artist: String, val album: String, val durationMs: Long, val artwork: ByteArray?,
-        val playing: Boolean, val positionMs: Long, val receivedAt: Long,
-    )
-
-    /** A `media.current` from OpenHU (on the player's looper). */
-    fun update(current: JSONObject) {
-        // Android Auto's own music is not the head unit's; the companion's own echo is filtered by OpenHU
-        if (current.optString("source") == "androidauto") return
-        track = parse(current)
+    /** `music.state` of the music plugin (on the player's looper). */
+    fun onState(state: JSONObject) {
+        track = MusicState.parse(state, cover)
         invalidateState()
+    }
+
+    /** `media.metadata` of the music plugin: its cover (a data URL), the rest comes with `music.state`. */
+    fun onMetadata(metadata: JSONObject) {
+        if (metadata.optString("source") != MusicState.SOURCE) return
+        val bytes = dataUrl(metadata.optString("cover")) ?: return
+        cover = metadata.optString("title") to bytes
+        track?.let { if (it.title == metadata.optString("title")) { track = it.copy(artwork = bytes); invalidateState() } }
     }
 
     fun refresh() {
         scope.launch {
-            val current = link.request("bus.get", JSONObject().put("topic", "media.current"))
-            if (current is JSONObject) update(current)
+            // the cover first: it only comes again with the next song
+            val metadata = link.request("bus.get", JSONObject().put("topic", "media.metadata"))
+            if (metadata is JSONObject) onMetadata(metadata)
+            val state = link.request("bus.get", JSONObject().put("topic", "music.state"))
+            if (state is JSONObject && state.length() > 0) onState(state)
         }
     }
 
@@ -141,26 +146,38 @@ class HeadUnitPlayer(
             Player.COMMAND_GET_CURRENT_MEDIA_ITEM, Player.COMMAND_GET_METADATA,
         ).build()
 
-        fun parse(current: JSONObject, now: Long = SystemClock.elapsedRealtime()): Track? {
-            val meta = current.optJSONObject("metadata") ?: return null
-            val title = meta.optString("title")
-            if (title.isEmpty()) return null
-            val status = current.optJSONObject("status") ?: JSONObject()
-            return Track(
-                title = title,
-                artist = meta.optString("artist"),
-                album = meta.optString("album"),
-                durationMs = (meta.optDouble("duration", 0.0) * 1000).toLong(),
-                artwork = dataUrl(meta.optString("cover")),
-                playing = status.optString("state") == "playing",
-                positionMs = (status.optDouble("position", 0.0) * 1000).toLong(),
-                receivedAt = now,
-            )
-        }
-
-        private fun dataUrl(url: String): ByteArray? {
+        fun dataUrl(url: String): ByteArray? {
             if (!url.startsWith("data:")) return null
             return try { Base64.decode(url.substringAfter(','), Base64.DEFAULT) } catch (_: Exception) { null }
         }
     }
+}
+
+/** The music plugin's `music.state` as the player's track (pure, no Android classes: unit tested). */
+object MusicState {
+    /** What OpenHU reports; [receivedAt] for the position between two reports. */
+    data class Track(
+        val title: String, val artist: String, val album: String, val durationMs: Long, val artwork: ByteArray?,
+        val playing: Boolean, val positionMs: Long, val receivedAt: Long,
+    )
+
+    const val SOURCE = "music"
+
+    fun parse(state: JSONObject, cover: Pair<String, ByteArray>?, now: Long = android.os.SystemClock.elapsedRealtime()): Track? {
+        val track = state.optJSONObject("track") ?: return null
+        val title = track.optString("title")
+        if (title.isEmpty()) return null
+        val playing = state.optString("state") == "playing"
+        return Track(
+            title = title,
+            artist = track.optString("artist"),
+            album = track.optString("album"),
+            durationMs = (state.optDouble("duration", track.optDouble("duration", 0.0)) * 1000).toLong(),
+            artwork = cover?.takeIf { it.first == title }?.second,
+            playing = playing,
+            positionMs = (state.optDouble("position", 0.0) * 1000).toLong(),
+            receivedAt = now,
+        )
+    }
+
 }
