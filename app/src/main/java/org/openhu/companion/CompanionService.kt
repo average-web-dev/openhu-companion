@@ -35,7 +35,14 @@ class CompanionService : MediaLibraryService() {
         player = HeadUnitPlayer(mainLooper, link, scope)
         voiceSearch = VoiceSearch(link) { item(it) }
         session = MediaLibrarySession.Builder(this, player, Callback()).build()
-        scope.launch { link.events.collect { if (it.topic == "media.current") player.update(it.data) } }
+        scope.launch {
+            link.events.collect {
+                when (it.topic) {
+                    "music.state" -> player.onState(it.data)
+                    "media.metadata" -> player.onMetadata(it.data)
+                }
+            }
+        }
         scope.launch { link.state.collect { if (it is HeadUnitLink.State.Connected) player.refresh() } }
     }
 

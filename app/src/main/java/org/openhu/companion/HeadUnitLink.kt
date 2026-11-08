@@ -122,7 +122,7 @@ class HeadUnitLink private constructor(private val context: Context) {
         Log.i(TAG, "head unit connected: $name")
         val label = context.applicationInfo.loadLabel(context.packageManager).toString()
         send(Protocol.hello(BuildConfig.VERSION_NAME, label, listOf("media")))
-        send(Protocol.subscribe(listOf("media.current", "music.result")))
+        send(Protocol.subscribe(listOf("music.state", "media.metadata", "music.result")))
         _state.value = State.Connected(name)
         try {
             val reader = BufferedReader(InputStreamReader(connection.inputStream, Charsets.UTF_8))
