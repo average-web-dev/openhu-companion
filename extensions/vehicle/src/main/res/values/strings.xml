@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OpenHU Vehicle</string>
+    <string name="state_no_companion">The OpenHU app is not installed.</string>
+    <string name="state_not_connected">The head unit is not connected.</string>
+    <string name="state_not_declared">No vehicle plugin on the head unit.</string>
+    <string name="state_pending">Allow this app in the OpenHU app on the phone.</string>
+    <string name="state_denied">Denied in the OpenHU app on the phone.</string>
+    <string name="no_values">No vehicle data yet.</string>
+    <string name="on">on</string>
+    <string name="off">off</string>
+    <string name="value_speed">Speed</string>
+    <string name="value_gear">Gear</string>
+    <string name="value_fuel">Fuel</string>
+    <string name="value_odometer">Odometer</string>
+    <string name="value_engine">Engine speed</string>
+    <string name="value_climate">Outside temperature</string>
+    <string name="value_compass">Heading</string>
+    <string name="value_parking_brake">Parking brake</string>
+</resources>
