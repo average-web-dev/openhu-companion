@@ -53,6 +53,9 @@ class HeadUnitLink private constructor(private val context: Context) {
     val state: StateFlow<State> = _state
     private val _events = MutableSharedFlow<Event>(extraBufferCapacity = 64)
     val events: SharedFlow<Event> = _events
+    private val _declared = MutableStateFlow<List<Extensions.Declared>>(emptyList())
+    /** The plugins that want an extension app (`companion.extensions`), the last list OpenHU sent. */
+    val declared: StateFlow<List<Extensions.Declared>> = _declared
 
     private val ids = AtomicInteger()
     private val responses = ConcurrentHashMap<Int, CompletableDeferred<Any?>>()
@@ -61,6 +64,7 @@ class HeadUnitLink private constructor(private val context: Context) {
     private var server: BluetoothServerSocket? = null
     @Volatile private var socket: BluetoothSocket? = null
     @Volatile private var output: OutputStream? = null
+    private val extraTopics: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
     fun hasPermission(): Boolean = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
         context.checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
@@ -122,7 +126,7 @@ class HeadUnitLink private constructor(private val context: Context) {
         Log.i(TAG, "head unit connected: $name")
         val label = context.applicationInfo.loadLabel(context.packageManager).toString()
         send(Protocol.hello(BuildConfig.VERSION_NAME, label, listOf("media")))
-        send(Protocol.subscribe(listOf("music.state", "media.metadata", "music.result")))
+        send(Protocol.subscribe(listOf("music.state", "media.metadata", "music.result", Extensions.TOPIC) + extraTopics))
         _state.value = State.Connected(name)
         try {
             val reader = BufferedReader(InputStreamReader(connection.inputStream, Charsets.UTF_8))
@@ -151,6 +155,7 @@ class HeadUnitLink private constructor(private val context: Context) {
     private fun handle(line: String) {
         when (val message = Protocol.parse(line)) {
             is Protocol.Message.Event -> {
+                if (message.topic == Extensions.TOPIC) _declared.value = Extensions.parseDeclared(message.data)
                 if (message.topic == "music.result") {
                     queries.remove(message.data.optString("id"))?.complete(message.data)
                 }
@@ -178,6 +183,12 @@ class HeadUnitLink private constructor(private val context: Context) {
     }
 
     val connected: Boolean get() = output != null
+
+    /** More topics (extensions): sent now (OpenHU answers with their current values) and after every reconnect. */
+    fun subscribe(topics: List<String>) {
+        extraTopics.addAll(topics)
+        if (topics.isNotEmpty()) send(Protocol.subscribe(topics))
+    }
 
     /** bus.emit of a topic (fire and forget). */
     fun emit(topic: String, data: JSONObject) {

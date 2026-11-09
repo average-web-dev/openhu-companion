@@ -11,4 +11,16 @@
     <string name="status_no_bluetooth">Bluetooth is off.</string>
     <string name="allow_bluetooth">Allow</string>
     <string name="explanation">With OpenHU, the music on the head unit (USB sticks and its own storage) appears as a media app in Android Auto. The head unit connects over Bluetooth when Android Auto starts, nothing to set up. No data leaves the phone and the head unit.</string>
+    <string name="extensions_title">Extensions</string>
+    <string name="extensions_none">No plugin on the head unit wants an app.</string>
+    <string name="extension_channel">Extension apps</string>
+    <string name="extension_ask_title">Allow %1$s?</string>
+    <string name="extension_ask_text">%1$s wants to reach the head unit for the plugin %2$s.</string>
+    <string name="extension_allow">Allow</string>
+    <string name="extension_deny">Deny</string>
+    <string name="extension_forget">Forget</string>
+    <string name="extension_not_installed">%1$s: app not installed (%2$s)</string>
+    <string name="extension_allowed">%1$s: allowed</string>
+    <string name="extension_denied">%1$s: denied</string>
+    <string name="extension_pending">%1$s: not decided yet</string>
 </resources>

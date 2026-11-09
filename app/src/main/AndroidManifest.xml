@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Bluetooth to the head unit: the RFCOMM link OpenHU opens when Android Auto starts -->
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-feature android:name="android.hardware.bluetooth" android:required="true" />
+    <!-- asking the user when an extension app connects the first time -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="false"
@@ -39,5 +42,18 @@
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
+
+        <!-- extension apps (openhu-companion#3): open to every app, the scope and the user's answer limit them -->
+        <service
+            android:name=".ExtensionService"
+            android:exported="true"
+            tools:ignore="ExportedService">
+            <intent-filter>
+                <action android:name="org.openhu.companion.EXTENSION" />
+            </intent-filter>
+        </service>
+        <receiver
+            android:name=".ExtensionAccess$Receiver"
+            android:exported="false" />
     </application>
 </manifest>

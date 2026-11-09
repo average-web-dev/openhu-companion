@@ -32,9 +32,22 @@ Larger data (uploads) will go over WiFi later. Bluetooth carries the status and 
 | `CompanionService.kt` | `MediaLibraryService`: tabs and lists from `music.query`. No notification, no foreground service. |
 | `Library.kt`, `Protocol.kt` | Media ids, query mapping, messages (pure, unit tested) |
 | `VoiceSearch.kt` | "Play … on OpenHU": the best matching song, or continue on an empty request |
-| `MainActivity.kt` | Status of the link and the Bluetooth permission |
+| `MainActivity.kt` | Status of the link, the Bluetooth permission and the extension apps |
+| `ExtensionService.kt`, `ExtensionAccess.kt`, `Extensions.kt` | The extension service, the user's answers per app, the scope rules (pure, unit tested) |
 
 Texts in English and German (`res/values`, `res/values-de`).
+
+## Extension apps
+
+A plugin can have its own entry in Android Auto: a small extension app (openhu-companion#3). Extensions talk to OpenHU only through the companion, which holds the Bluetooth link.
+
+- **Screen:** sideloaded apps get an entry in Android Auto only as media apps, so an extension's screen is a media tree. Android Auto shows the root's children as tabs; inside, items with a title and a subtitle are values, and a tap on any item that is not playable asks for its children (an action, its result as a page). Never offer playable items: Android Auto then expects playback and the extension would take the now playing card. An extension may also ship a Play build with Car App Library templates (like Home Assistant); the protocol is the same.
+- **Connection:** bind `org.openhu.companion.EXTENSION` (package `org.openhu.companion`, no permission) and exchange `Message`s (`what` 1) with a JSON string under `json` in the `Bundle`, replies to `replyTo`. Use `extensions/client` (`OpenHUExtension.kt`, one file without dependencies, may be copied).
+- **Messages:** extension → companion `hello` {plugin}, `subscribe` {topics}, `request` {id, method: `bus.get`, params: {topic}}, `emit` {topic, data}; companion → extension `state` {connected, access, name}, `event` {topic, data}, `response` {id, result | error}, `error` {error}.
+- **Scope:** OpenHU publishes `companion.extensions` (from the plugins' manifests: plugin, package, name, topics, commands). An app gets only the topics and commands of the plugin that names its package, and only after the user allowed it once (notification, or the companion's screen; bound to the app's signing certificate). `access`: `allowed`, `pending`, `denied`, `notDeclared`.
+- **Installing** extensions is up to the user (sideload, a store); the companion only lists which plugins want an app and whether it is installed.
+
+The official extensions are modules under `extensions/` (`vehicle`: the vehicle plugin's values).
 
 ## Build
 
@@ -44,6 +57,7 @@ In Docker (image `openhu-companion:dev`, `docker/Dockerfile`):
 docker/dev.sh build     # debug APK, unit tests, lint
 docker/dev.sh install   # build and install the debug APK on the phone (adb on the host)
 docker/dev.sh bundle    # release bundle for Play: app/build/outputs/bundle/release/app-release.aab
+docker/dev.sh gradle :extensions:vehicle:assembleDebug   # an extension (extensions/vehicle/build/outputs/apk/debug/)
 ```
 
 CI builds the debug APK and an unsigned release bundle for every push.

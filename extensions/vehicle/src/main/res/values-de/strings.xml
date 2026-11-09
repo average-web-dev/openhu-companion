@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OpenHU Fahrzeug</string>
+    <string name="state_no_companion">Die OpenHU-App ist nicht installiert.</string>
+    <string name="state_not_connected">Das Autoradio ist nicht verbunden.</string>
+    <string name="state_not_declared">Kein Fahrzeug-Plugin auf dem Autoradio.</string>
+    <string name="state_pending">Erlaube diese App in der OpenHU-App auf dem Handy.</string>
+    <string name="state_denied">In der OpenHU-App auf dem Handy abgelehnt.</string>
+    <string name="no_values">Noch keine Fahrzeugdaten.</string>
+    <string name="on">an</string>
+    <string name="off">aus</string>
+    <string name="value_speed">Geschwindigkeit</string>
+    <string name="value_gear">Gang</string>
+    <string name="value_fuel">Tank</string>
+    <string name="value_odometer">Kilometerstand</string>
+    <string name="value_engine">Drehzahl</string>
+    <string name="value_climate">Außentemperatur</string>
+    <string name="value_compass">Richtung</string>
+    <string name="value_parking_brake">Handbremse</string>
+</resources>

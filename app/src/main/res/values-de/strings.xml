@@ -10,4 +10,16 @@
     <string name="status_no_bluetooth">Bluetooth ist aus.</string>
     <string name="allow_bluetooth">Erlauben</string>
     <string name="explanation">Mit OpenHU erscheint die Musik des Autoradios (USB-Sticks und eigener Speicher) als Medien-App in Android Auto. Das Autoradio verbindet sich über Bluetooth, sobald Android Auto startet, ohne Einrichtung. Keine Daten verlassen Handy und Autoradio.</string>
+    <string name="extensions_title">Erweiterungen</string>
+    <string name="extensions_none">Kein Plugin auf dem Autoradio möchte eine App.</string>
+    <string name="extension_channel">Erweiterungs-Apps</string>
+    <string name="extension_ask_title">%1$s erlauben?</string>
+    <string name="extension_ask_text">%1$s möchte für das Plugin %2$s auf das Autoradio zugreifen.</string>
+    <string name="extension_allow">Erlauben</string>
+    <string name="extension_deny">Ablehnen</string>
+    <string name="extension_forget">Vergessen</string>
+    <string name="extension_not_installed">%1$s: App nicht installiert (%2$s)</string>
+    <string name="extension_allowed">%1$s: erlaubt</string>
+    <string name="extension_denied">%1$s: abgelehnt</string>
+    <string name="extension_pending">%1$s: noch nicht entschieden</string>
 </resources>
