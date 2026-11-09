@@ -9,11 +9,13 @@ import androidx.car.app.Screen
 import androidx.car.app.Session
 import androidx.car.app.model.Action
 import androidx.car.app.model.ActionStrip
+import androidx.car.app.model.CarIcon
 import androidx.car.app.model.ItemList
 import androidx.car.app.model.ListTemplate
 import androidx.car.app.model.Row
 import androidx.car.app.model.Template
 import androidx.car.app.validation.HostValidator
+import androidx.core.graphics.drawable.IconCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.CoroutineScope
@@ -106,11 +108,10 @@ class StatusScreen(carContext: CarContext, private val link: HeadUnitLink) : Scr
                     .build(),
             )
             .build()
+        // icons: an action strip allows only one action with a text
         val actions = ActionStrip.Builder()
-            .addAction(Action.Builder().setTitle(carContext.getString(R.string.action_play_pause))
-                .setOnClickListener { command("toggle") }.build())
-            .addAction(Action.Builder().setTitle(carContext.getString(R.string.action_next))
-                .setOnClickListener { command("next") }.build())
+            .addAction(iconAction(R.drawable.ic_play_pause) { command("toggle") })
+            .addAction(iconAction(R.drawable.ic_next) { command("next") })
             .build()
         return ListTemplate.Builder()
             .setTitle(carContext.getString(R.string.status_title))
@@ -119,4 +120,9 @@ class StatusScreen(carContext: CarContext, private val link: HeadUnitLink) : Scr
             .setActionStrip(actions)
             .build()
     }
+
+    private fun iconAction(icon: Int, onClick: () -> Unit): Action = Action.Builder()
+        .setIcon(CarIcon.Builder(IconCompat.createWithResource(carContext, icon)).build())
+        .setOnClickListener(onClick)
+        .build()
 }

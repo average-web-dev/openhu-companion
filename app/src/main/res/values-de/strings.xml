@@ -17,6 +17,4 @@
     <string name="row_nothing_playing">Nichts</string>
     <string name="row_playing">Läuft</string>
     <string name="row_paused">Pausiert</string>
-    <string name="action_play_pause">Play/Pause</string>
-    <string name="action_next">Weiter</string>
 </resources>

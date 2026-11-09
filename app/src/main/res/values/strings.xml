@@ -18,6 +18,4 @@
     <string name="row_nothing_playing">Nothing</string>
     <string name="row_playing">Playing</string>
     <string name="row_paused">Paused</string>
-    <string name="action_play_pause">Play/Pause</string>
-    <string name="action_next">Next</string>
 </resources>
