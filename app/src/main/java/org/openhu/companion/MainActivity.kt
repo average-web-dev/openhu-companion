@@ -2,10 +2,6 @@ package org.openhu.companion
 
 import android.Manifest
 import android.app.Activity
-import android.app.SearchManager
-import android.content.Intent
-import android.provider.MediaStore
-import androidx.media3.common.MediaItem
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -37,7 +33,6 @@ class MainActivity : Activity() {
                 requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_CONNECT), REQUEST_BLUETOOTH)
             }
         }
-        voiceRequest(intent)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) {
@@ -91,19 +86,6 @@ class MainActivity : Activity() {
             if (decision != null) button(R.string.extension_forget) { ExtensionAccess.forget(this, extension.pkg) }
             container.addView(buttons)
         }
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        voiceRequest(intent)
-    }
-
-    // "Play … on OpenHU" from the Assistant on the phone
-    private fun voiceRequest(intent: Intent?) {
-        if (intent?.action != MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH) return
-        val query = intent.getStringExtra(SearchManager.QUERY).orEmpty()
-        val search = VoiceSearch(link) { MediaItem.Builder().setMediaId(it.id).build() }
-        scope.launch { search.play(query) }
     }
 
     override fun onResume() {

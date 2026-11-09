@@ -9,12 +9,13 @@ import org.junit.Test
 class ProtocolTest {
     @Test
     fun helloAnnouncesTheApp() {
-        val hello = Protocol.hello("1.0.0", "OpenHU", listOf("media"))
+        val hello = Protocol.hello("1.0.0", "OpenHU", listOf("extensions"), listOf("Music"))
         assertEquals("hello", hello.getString("type"))
         assertEquals("org.openhu.companion", hello.getString("app"))
         assertEquals(1, hello.getInt("protocol"))
         assertEquals("OpenHU", hello.getString("label"))
-        assertEquals("media", hello.getJSONArray("features").getString(0))
+        assertEquals("extensions", hello.getJSONArray("features").getString(0))
+        assertEquals("Music", hello.getJSONArray("mediaLabels").getString(0))
     }
 
     @Test

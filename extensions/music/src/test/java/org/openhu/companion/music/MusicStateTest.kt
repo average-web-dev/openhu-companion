@@ -1,4 +1,4 @@
-package org.openhu.companion
+package org.openhu.companion.music
 
 import org.json.JSONObject
 import org.junit.Assert.assertEquals

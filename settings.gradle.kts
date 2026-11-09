@@ -9,4 +9,5 @@ rootProject.name = "openhu-companion"
 include(":app")
 // extension apps (openhu-companion#3): the client library and the official extensions
 include(":extensions:client")
+include(":extensions:music")
 include(":extensions:vehicle")

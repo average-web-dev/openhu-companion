@@ -12,14 +12,19 @@ object Protocol {
     const val VERSION = 1
     const val APP_ID = "org.openhu.companion"
 
-    /** [label]: the app's name as Android Auto reports it as the media source (OpenHU recognizes the app by it). */
-    fun hello(appVersion: String, label: String, features: List<String>): JSONObject = JSONObject()
-        .put("type", "hello")
-        .put("app", APP_ID)
-        .put("version", appVersion)
-        .put("label", label)
-        .put("protocol", VERSION)
-        .put("features", JSONArray(features))
+    /**
+     * [label]: the app's name; [mediaLabels]: the names Android Auto shows (and reports as the media source) for
+     * the media extensions, OpenHU recognizes its own music in Android Auto by them.
+     */
+    fun hello(appVersion: String, label: String, features: List<String>, mediaLabels: List<String> = emptyList()): JSONObject =
+        JSONObject()
+            .put("type", "hello")
+            .put("app", APP_ID)
+            .put("version", appVersion)
+            .put("label", label)
+            .put("mediaLabels", JSONArray(mediaLabels))
+            .put("protocol", VERSION)
+            .put("features", JSONArray(features))
 
     fun subscribe(topics: List<String>): JSONObject =
         JSONObject().put("type", "subscribe").put("topics", JSONArray(topics))

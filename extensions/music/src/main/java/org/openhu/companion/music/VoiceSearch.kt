@@ -1,13 +1,13 @@
-package org.openhu.companion
+package org.openhu.companion.music
 
 import androidx.media3.common.MediaItem
 import org.json.JSONObject
 
 /**
- * Voice requests ("play … on OpenHU", Android Auto and the Assistant): an empty query continues the head unit's
+ * Voice requests ("play … on Music", Android Auto and the Assistant): an empty query continues the head unit's
  * music, otherwise the best matching song of its library plays (title, artist, album).
  */
-class VoiceSearch(private val link: HeadUnitLink, private val toItem: (Library.Entry) -> MediaItem) {
+class VoiceSearch(private val link: MusicLink, private val toItem: (Library.Entry) -> MediaItem) {
     /** The item to play, null when nothing matches; an empty query continues playback instead. */
     suspend fun find(query: String): MediaItem? {
         if (query.isBlank()) {

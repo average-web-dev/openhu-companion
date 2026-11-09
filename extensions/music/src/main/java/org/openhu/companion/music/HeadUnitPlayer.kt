@@ -1,4 +1,4 @@
-package org.openhu.companion
+package org.openhu.companion.music
 
 import android.os.Handler
 import android.os.Looper
@@ -25,7 +25,7 @@ import org.json.JSONObject
 @OptIn(UnstableApi::class)
 class HeadUnitPlayer(
     looper: Looper,
-    private val link: HeadUnitLink,
+    private val link: MusicLink,
     private val scope: CoroutineScope,
 ) : SimpleBasePlayer(looper) {
     private val handler = Handler(looper)
@@ -50,10 +50,10 @@ class HeadUnitPlayer(
     fun refresh() {
         scope.launch {
             // the cover first: it only comes again with the next song
-            val metadata = link.request("bus.get", JSONObject().put("topic", "media.metadata"))
-            if (metadata is JSONObject) onMetadata(metadata)
-            val state = link.request("bus.get", JSONObject().put("topic", "music.state"))
-            if (state is JSONObject && state.length() > 0) onState(state)
+            val metadata = link.get("media.metadata")
+            if (metadata != null) onMetadata(metadata)
+            val state = link.get("music.state")
+            if (state != null && state.length() > 0) onState(state)
         }
     }
 
