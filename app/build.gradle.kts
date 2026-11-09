@@ -25,7 +25,7 @@ android {
         minSdk = 26
         targetSdk = 36
         // versionCode: raise with every Play upload
-        versionCode = 1
+        versionCode = 2
         versionName = "1.0.0"
     }
 
@@ -63,6 +63,7 @@ kotlin {
 dependencies {
     implementation(libs.media3.session)
     implementation(libs.media3.common)
+    implementation(libs.car.app)
     implementation(libs.coroutines.android)
     implementation(libs.coroutines.guava)
     testImplementation(libs.junit)

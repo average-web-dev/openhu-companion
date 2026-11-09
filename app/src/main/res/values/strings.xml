@@ -11,4 +11,13 @@
     <string name="status_no_bluetooth">Bluetooth is off.</string>
     <string name="allow_bluetooth">Allow</string>
     <string name="explanation">With OpenHU, the music on the head unit (USB sticks and its own storage) appears as a media app in Android Auto. The head unit connects over Bluetooth when Android Auto starts, nothing to set up. No data leaves the phone and the head unit.</string>
+    <string name="status_title">OpenHU status</string>
+    <string name="row_connection">Head unit</string>
+    <string name="row_now_playing">Now playing</string>
+    <string name="row_not_connected">Not connected</string>
+    <string name="row_nothing_playing">Nothing</string>
+    <string name="row_playing">Playing</string>
+    <string name="row_paused">Paused</string>
+    <string name="action_play_pause">Play/Pause</string>
+    <string name="action_next">Next</string>
 </resources>

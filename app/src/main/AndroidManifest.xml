@@ -15,6 +15,10 @@
         <meta-data
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />
+        <!-- the status screen (Car App Library templates): API level 1 is enough for a list -->
+        <meta-data
+            android:name="androidx.car.app.minCarApiLevel"
+            android:value="1" />
 
         <activity
             android:name=".MainActivity"
@@ -37,6 +41,16 @@
             <intent-filter>
                 <action android:name="androidx.media3.session.MediaLibraryService" />
                 <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+
+        <!-- the head unit's status as a template screen (Car App Library, IoT category) -->
+        <service
+            android:name=".StatusCarAppService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.car.app.CarAppService" />
+                <category android:name="androidx.car.app.category.IOT" />
             </intent-filter>
         </service>
     </application>
