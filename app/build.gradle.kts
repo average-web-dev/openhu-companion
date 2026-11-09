@@ -61,10 +61,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(libs.media3.session)
-    implementation(libs.media3.common)
     implementation(libs.coroutines.android)
-    implementation(libs.coroutines.guava)
     testImplementation(libs.junit)
     testImplementation(libs.coroutines.test)
     // org.json in unit tests (Android's own is a stub there)

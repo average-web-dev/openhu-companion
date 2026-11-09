@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Musik</string>
+    <string name="tab_albums">Alben</string>
+    <string name="tab_artists">Interpreten</string>
+    <string name="tab_playlists">Playlists</string>
+    <string name="tab_songs">Titel</string>
+</resources>

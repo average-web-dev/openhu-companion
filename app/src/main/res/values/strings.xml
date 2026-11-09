@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">OpenHU</string>
-    <string name="tab_albums">Albums</string>
-    <string name="tab_artists">Artists</string>
-    <string name="tab_playlists">Playlists</string>
-    <string name="tab_songs">Songs</string>
     <string name="status_waiting">Waiting for the head unit. It connects by itself when Android Auto starts.</string>
     <string name="status_connected">Connected to %1$s</string>
     <string name="status_no_permission">The app needs the permission for nearby devices (Bluetooth) to reach the head unit.</string>
     <string name="status_no_bluetooth">Bluetooth is off.</string>
     <string name="allow_bluetooth">Allow</string>
-    <string name="explanation">With OpenHU, the music on the head unit (USB sticks and its own storage) appears as a media app in Android Auto. The head unit connects over Bluetooth when Android Auto starts, nothing to set up. No data leaves the phone and the head unit.</string>
+    <string name="explanation">The OpenHU app connects the phone to the head unit: over Bluetooth, by itself when Android Auto starts, nothing to set up. Extension apps (like Music) reach the head unit through it, each only after you allowed it below. No data leaves the phone and the head unit.</string>
     <string name="extensions_title">Extensions</string>
     <string name="extensions_none">No plugin on the head unit wants an app.</string>
     <string name="extension_channel">Extension apps</string>

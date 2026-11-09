@@ -1,4 +1,4 @@
-package org.openhu.companion
+package org.openhu.companion.music
 
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
@@ -17,21 +17,22 @@ import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.launch
 
 /**
- * The media app in Android Auto: the head unit's music library as tabs, its player as the session. Android Auto
- * binds it when it connects, which also starts the Bluetooth link ([HeadUnitLink]).
+ * The music app in Android Auto: the head unit's music library (the music plugin) as tabs, its player as the
+ * session. It reaches the head unit through the OpenHU companion app ([MusicLink]); binding the companion also
+ * starts its Bluetooth link, so Android Auto binding this app is enough.
  */
 @OptIn(UnstableApi::class)
-class CompanionService : MediaLibraryService() {
+class MusicService : MediaLibraryService() {
     private val scope = MainScope()
-    private lateinit var link: HeadUnitLink
+    private lateinit var link: MusicLink
     private lateinit var player: HeadUnitPlayer
     private lateinit var voiceSearch: VoiceSearch
     private var session: MediaLibrarySession? = null
 
     override fun onCreate() {
         super.onCreate()
-        link = HeadUnitLink.get(this)
-        link.start()
+        link = MusicLink.get(this)
+        link.connect()
         player = HeadUnitPlayer(mainLooper, link, scope)
         voiceSearch = VoiceSearch(link) { item(it) }
         session = MediaLibrarySession.Builder(this, player, Callback()).build()
@@ -43,7 +44,7 @@ class CompanionService : MediaLibraryService() {
                 }
             }
         }
-        scope.launch { link.state.collect { if (it is HeadUnitLink.State.Connected) player.refresh() } }
+        scope.launch { link.state.collect { if (it.ready) player.refresh() } }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? = session
@@ -86,7 +87,7 @@ class CompanionService : MediaLibraryService() {
         }
 
         // A chosen track keeps its media id; the player turns it into music.command playItems. A voice request
-        // ("play … on OpenHU") comes as an item with only a search query: the best song of the head unit's library.
+        // ("play … on Music") comes as an item with only a search query: the best song of the head unit's library.
         override fun onAddMediaItems(
             mediaSession: MediaSession, controller: MediaSession.ControllerInfo, mediaItems: MutableList<MediaItem>,
         ): ListenableFuture<MutableList<MediaItem>> {

@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
@@ -59,7 +61,6 @@ class HeadUnitLink private constructor(private val context: Context) {
 
     private val ids = AtomicInteger()
     private val responses = ConcurrentHashMap<Int, CompletableDeferred<Any?>>()
-    private val queries = ConcurrentHashMap<String, CompletableDeferred<JSONObject>>()
     private var serverJob: Job? = null
     private var server: BluetoothServerSocket? = null
     @Volatile private var socket: BluetoothSocket? = null
@@ -68,6 +69,27 @@ class HeadUnitLink private constructor(private val context: Context) {
 
     fun hasPermission(): Boolean = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
         context.checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+
+    init {
+        // the names of the allowed media extensions change: tell OpenHU again
+        scope.launch { combine(declared, ExtensionAccess.version) { _, _ -> }.collect { if (connected) sendHello() } }
+    }
+
+    /**
+     * The announcement: the app, and the names Android Auto shows for the allowed media extensions (the local
+     * player): OpenHU recognizes them as its own music in Android Auto's media status.
+     */
+    private fun sendHello() {
+        val label = context.applicationInfo.loadLabel(context.packageManager).toString()
+        send(Protocol.hello(BuildConfig.VERSION_NAME, label, listOf("extensions"), mediaLabels()))
+    }
+
+    private fun mediaLabels(): List<String> = declared.value.mapNotNull { extension ->
+        val digest = ExtensionAccess.digest(context, extension.pkg) ?: return@mapNotNull null
+        if (ExtensionAccess.decision(context, extension.pkg, digest) != true) return@mapNotNull null
+        val intent = Intent("android.media.browse.MediaBrowserService").setPackage(extension.pkg)
+        context.packageManager.queryIntentServices(intent, 0).firstOrNull()?.loadLabel(context.packageManager)?.toString()
+    }.distinct()
 
     /** Starts listening (again, e.g. after the permission was granted). */
     @Synchronized
@@ -124,9 +146,8 @@ class HeadUnitLink private constructor(private val context: Context) {
         }
         val name = try { connection.remoteDevice.name ?: connection.remoteDevice.address } catch (_: Exception) { "?" }
         Log.i(TAG, "head unit connected: $name")
-        val label = context.applicationInfo.loadLabel(context.packageManager).toString()
-        send(Protocol.hello(BuildConfig.VERSION_NAME, label, listOf("media")))
-        send(Protocol.subscribe(listOf("music.state", "media.metadata", "music.result", Extensions.TOPIC) + extraTopics))
+        sendHello()
+        send(Protocol.subscribe(listOf(Extensions.TOPIC) + extraTopics))
         _state.value = State.Connected(name)
         try {
             val reader = BufferedReader(InputStreamReader(connection.inputStream, Charsets.UTF_8))
@@ -146,9 +167,7 @@ class HeadUnitLink private constructor(private val context: Context) {
             }
             try { connection.close() } catch (_: Exception) {}
             responses.values.forEach { it.cancel() }
-            queries.values.forEach { it.cancel() }
             responses.clear()
-            queries.clear()
         }
     }
 
@@ -156,9 +175,6 @@ class HeadUnitLink private constructor(private val context: Context) {
         when (val message = Protocol.parse(line)) {
             is Protocol.Message.Event -> {
                 if (message.topic == Extensions.TOPIC) _declared.value = Extensions.parseDeclared(message.data)
-                if (message.topic == "music.result") {
-                    queries.remove(message.data.optString("id"))?.complete(message.data)
-                }
                 _events.tryEmit(Event(message.topic, message.data))
             }
             is Protocol.Message.Response -> responses.remove(message.id)?.complete(message.result)
@@ -205,17 +221,6 @@ class HeadUnitLink private constructor(private val context: Context) {
             .also { responses.remove(id) }
     }
 
-    /** music.query → music.result with the same id, null on a timeout or without a link. */
-    suspend fun query(data: JSONObject): JSONObject? {
-        val id = "c" + ids.incrementAndGet()
-        val answer = CompletableDeferred<JSONObject>()
-        queries[id] = answer
-        data.put("id", id)
-        emit("music.query", data)
-        if (!connected) { queries.remove(id); return null }
-        return withTimeoutOrNull(TIMEOUT_MS) { try { answer.await() } catch (_: Exception) { null } }
-            .also { queries.remove(id) }
-    }
 
     companion object {
         private const val TAG = "OpenHUCompanion"

@@ -12,14 +12,15 @@ Concept and decisions: openhu#158.
 Nothing to set up:
 
 1. The phone is paired with the head unit over Bluetooth, which calls in Android Auto need anyway.
-2. When Android Auto starts, it binds the app's media service (`CompanionService`). The app then listens on its
-   RFCOMM service (UUID `57b07c95-708d-46ae-a658-9f296dfd034c`), and only bonded devices can connect.
-3. Android Auto tells the head unit the phone's Bluetooth address. OpenHU connects to the app's service on exactly
+2. When Android Auto starts, it binds the music app (`extensions/music`), which binds the companion's extension
+   service. The companion then listens on its RFCOMM service (UUID `57b07c95-708d-46ae-a658-9f296dfd034c`), and
+   only bonded devices can connect.
+3. Android Auto tells the head unit the phone's Bluetooth address. OpenHU connects to the companion on exactly
    that phone. If the app is not installed, the connection fails and nothing happens.
-4. The app announces itself (`hello`: app, version, label). After that the link carries OpenHU's API
-   (`docs/api.md` in openhu) as JSON, one message per line: `media.current`, `music.query` → `music.result`,
-   `music.command`. OpenHU recognizes Android Auto's media app by the announced label. It keeps the audio focus
-   with the phone and does not treat the app's playback as phone music.
+4. The companion announces itself (`hello`: app, version, label, `mediaLabels`). After that the link carries
+   OpenHU's API (`docs/api.md` in openhu) as JSON, one message per line, for the extensions. OpenHU recognizes
+   Android Auto's media app by the announced media labels: it keeps the audio focus with the phone and does not
+   treat the music app's playback as phone music.
 
 Larger data (uploads) will go over WiFi later. Bluetooth carries the status and the control.
 
@@ -28,10 +29,8 @@ Larger data (uploads) will go over WiFi later. Bluetooth carries the status and 
 | File | |
 |---|---|
 | `HeadUnitLink.kt` | RFCOMM service, JSON lines, requests and queries |
-| `HeadUnitPlayer.kt` | Media3 player without sound. Its state is OpenHU's `media.current`, its buttons become `music.command`. It fetches the state again 1.2 s after the last tap, because Android Auto shows its own guess first. |
-| `CompanionService.kt` | `MediaLibraryService`: tabs and lists from `music.query`. No notification, no foreground service. |
-| `Library.kt`, `Protocol.kt` | Media ids, query mapping, messages (pure, unit tested) |
-| `VoiceSearch.kt` | "Play … on OpenHU": the best matching song, or continue on an empty request |
+| `Protocol.kt` | Messages (pure, unit tested); the hello carries the names of the allowed media extensions (`mediaLabels`), OpenHU recognizes its own music in Android Auto by them |
+| `extensions/music`: `MusicService.kt`, `HeadUnitPlayer.kt`, `Library.kt`, `VoiceSearch.kt`, `MusicLink.kt` | The music app: `MediaLibraryService` with tabs from `music.query`, a Media3 player without sound following `music.state`, voice search, all through the companion |
 | `MainActivity.kt` | Status of the link, the Bluetooth permission and the extension apps |
 | `ExtensionService.kt`, `ExtensionAccess.kt`, `Extensions.kt` | The extension service, the user's answers per app, the scope rules (pure, unit tested) |
 
@@ -47,7 +46,7 @@ A plugin can have its own entry in Android Auto: a small extension app (openhu-c
 - **Scope:** OpenHU publishes `companion.extensions` (from the plugins' manifests: plugin, package, name, topics, commands). An app gets only the topics and commands of the plugin that names its package, and only after the user allowed it once (notification, or the companion's screen; bound to the app's signing certificate). `access`: `allowed`, `pending`, `denied`, `notDeclared`.
 - **Installing** extensions is up to the user (sideload, a store); the companion only lists which plugins want an app and whether it is installed.
 
-The official extensions are modules under `extensions/` (`vehicle`: the vehicle plugin's values).
+The official extensions are modules under `extensions/`: `music` ("Music" in Android Auto: the music plugin's library and player, the head unit's music; it was the companion's own media app before) and `vehicle` (the vehicle plugin's values, a reference). The companion itself has no entry in Android Auto: Android Auto binds an extension, the extension binds the companion, which starts its Bluetooth listener.
 
 ## Build
 
