@@ -5,6 +5,7 @@ media3 = "1.11.1"
 coroutines = "1.11.0"
 junit = "4.13.2"
 json = "20260814"
+carApp = "1.7.0"
 
 [libraries]
 media3-session = { module = "androidx.media3:media3-session", version.ref = "media3" }
@@ -13,6 +14,7 @@ coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-androi
 coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "coroutines" }
 junit = { module = "junit:junit", version.ref = "junit" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+car-app = { module = "androidx.car.app:app", version.ref = "carApp" }
 json = { module = "org.json:json", version.ref = "json" }
 
 [plugins]
